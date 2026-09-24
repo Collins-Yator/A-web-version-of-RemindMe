@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: remindme-postgres
+    environment:
+      POSTGRES_DB: remindme_db
+      POSTGRES_USER: remindme_user
+      POSTGRES_PASSWORD: remindme_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U remindme_user -d remindme_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: remindme-mailpit
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI
+    restart: unless-stopped
+
+  remindme-app:
+    build: .
+    container_name: remindme-app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      DB_URL: jdbc:postgresql://postgres:5432/remindme_db
+      DB_USERNAME: remindme_user
+      DB_PASSWORD: remindme_password
+      MAIL_HOST: mailpit
+      MAIL_PORT: 1025
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  pgdata:

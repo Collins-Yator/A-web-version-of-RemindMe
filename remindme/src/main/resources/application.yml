@@ -1,0 +1,68 @@
+spring:
+  application:
+    name: remindme
+  profiles:
+    active: dev
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/remindme_db}
+    username: ${DB_USERNAME:remindme_user}
+    password: ${DB_PASSWORD:remindme_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      idle-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  mail:
+    host: ${MAIL_HOST:localhost}
+    port: ${MAIL_PORT:1025}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:google-client-id-placeholder}
+            client-secret: ${GOOGLE_CLIENT_SECRET:google-client-secret-placeholder}
+            scope:
+              - email
+              - profile
+
+remindme:
+  scheduler:
+    cron: "0 * * * * *" # Every minute
+    batch-size: 50
+  email:
+    sender: ${REMINDME_EMAIL_SENDER:yatorcollins44@gmail.com}
+    default-recipient: ${REMINDME_DEV_RECIPIENT:yatorcollins43@gmail.com}
+  default-timezone: ${REMINDME_DEFAULT_TIMEZONE:Africa/Nairobi}
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
